@@ -32,13 +32,14 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth',  # Приложение для регистрация и авторизация пользователей
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api.apps.ApiConfig',  # зарегистрировали приложение
-    'users.apps.UsersConfig',  # зарегистрировали приложение
+    'api.apps.ApiConfig',  # зарегистрировали приложение api
+    'users.apps.UsersConfig',  # зарегистрировали приложение users
+    'additions.apps.AdditionsConfig',  # зарегистрировали приложение additions
 ]
 
 MIDDLEWARE = [
