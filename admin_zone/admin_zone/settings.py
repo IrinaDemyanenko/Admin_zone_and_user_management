@@ -11,6 +11,14 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+email_host_user_env = os.getenv('EMAIL_HOST_USER_ENV')
+email_host_password_env = os.getenv('EMAIL_HOST_PASSWORD_ENV')
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -124,3 +132,48 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'users:login'
+# Это адрес, на который Django будет перенаправлять пользователей
+# для авторизации. Это особенно важно при использовании декоратора
+# @login_required, о котором вы узнаете в следующих уроках (интрига).
+# Значение по умолчанию: '/accounts/login/'
+
+LOGIN_REDIRECT_URL = 'users:index'
+# Здесь указывается, куда перенаправить пользователя после успешной
+# авторизации.
+# Значение по умолчанию: '/accounts/profile/'
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000/', 'https://*.com',
+    'http://*.com', 'https://*.ru'
+    ]
+# https://*.com - по сути любой адрес
+# это адреса с которых допустимы POST - запросы
+
+# письма с ссылкой на востановление пароля приходит в консоль
+# для учебеного проекта этого достаточно
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# настройка для почтового сервера Яндекс
+# у меня заработало, но только если у пользователя почта тоже из яндекса
+# EMAIL_HOST = 'smtp.yandex.ru'
+# EMAIL_PORT = 465
+# EMAIL_USE_TLS = False
+# EMAIL_USE_SSL = True
+# EMAIL_HOST_USER = 'irinademd@yandex.ru'
+# EMAIL_HOST_PASSWORD = 'zqmwpwokohdhkplz'
+
+
+# настройка для почтового сервера Google
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.environ['email_host_user_env']
+EMAIL_HOST_PASSWORD = os.environ['email_host_password_env']
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
