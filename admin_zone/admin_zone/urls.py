@@ -1,6 +1,8 @@
 
 from django.contrib import admin
 from django.urls import path, include
+# подключаем плагин для генерации документации
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
     # подключение регистр и авторизации из приложения users
@@ -16,4 +18,13 @@ urlpatterns = [
     # Django пойдёт искать его в django.contrib.auth
     path('auth/', include('django.contrib.auth.urls')),
     path('', include('users.urls', namespace='users')),
+    # подключаем адреса приложения api
+    path('api/v1/', include('api.urls', namespace='api')),
+    # Генерация OpenAPI схемы
+    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Swagger UI
+    path('api/v1/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # Redoc
+    path('api/v1/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
 ]

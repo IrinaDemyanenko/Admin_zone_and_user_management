@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 email_host_user_env = os.getenv('EMAIL_HOST_USER_ENV')
@@ -48,11 +49,16 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',  # зарегистрировали приложение api
     'users.apps.UsersConfig',  # зарегистрировали приложение users
     'additions.apps.AdditionsConfig',  # зарегистрировали приложение additions
+    'rest_framework',
+    'djoser',  # приложение для работы с JWT
+    'corsheaders',  # разрешение доступа к api
+    'drf_spectacular',  # подключаем расширение для автоматической генерации документации OpenAPI
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # обработчик для разрешения доступа к api CORS
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -72,7 +78,13 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
+                # добавляет в контекст шаблона объект user, он может быть двух типов: AnonymousUser, либо экземпляром модели User
+                # Но самое важное — у этого объекта есть свойство is_authenticated; это свойство принимает значение True, если пользователь авторизован.
                 'django.contrib.messages.context_processors.messages',
+                # Найди в корне проекта папку core/, в ней - папку context_processors/,
+                # там - файл year.py, а в этом файле - функцию year().
+                # Словарь, который она возвращает, добавь на все страницы проекта.
+                'additions.context_processors.year.year',
             ],
         },
     },
@@ -177,3 +189,57 @@ EMAIL_HOST_PASSWORD = os.environ['email_host_password_env']
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = EMAIL_HOST_USER
+
+REST_FRAMEWORK = {
+    # разрешить доступ к апи только зарегистрированным пользователям
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+
+    # аутентификация осуществляется с помощью JWT
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+
+    # ограничение суточного количества запросов
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10000/day',  # Лимит для UserRateThrottle
+        'anon': '1000/day',  # Лимит для AnonRateThrottle
+    },
+
+    # добавим разбиение ответа API по страницам - пагинация
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+
+    # Схема для автоматической генерации API-документации OpenAPI
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SIMPLE_JWT = {
+    # Устанавливаем срок жизни токена
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=360),
+    # В заголовке у токена будет слово носитель - Bearer, вместо слова
+    # Token по умолчанию
+    'AUTH_HEADER_TYPES': ('Bearer', )
+}
+
+AUTH_USER_MODEL = 'api.CustomUser'  # переопределили модель User
+
+# Cross-Origin Resource Sharing, CORS
+# (англ. «совместное использование ресурсов между разными источниками»)
+CORS_ORIGIN_ALLOW_ALL = True
+# начинаются с api далее любые (.) символы повторяющиеся сколько угодно раз (*)
+CORS_URLS_REGEX = r'^/api/v1/.*$'
+
+# Настройки для drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Join-project API',  # Название API
+    # Описание API
+    'DESCRIPTION': 'API для управления постами, комментариями, фоловерами социальной сети.',
+    'VERSION': 'v1',  # Версия API
+    'SERVE_INCLUDE_SCHEMA': False  # Отключение схемы в ответах API
+}

@@ -1,0 +1,2 @@
+EMAIL_HOST_USER_ENV = 'yourmail@gmail.com'
+EMAIL_HOST_PASSWORD_ENV = 'your_app_password'
